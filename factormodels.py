@@ -1,6 +1,7 @@
 import numpy as np
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
+import seaborn as sns; sns.set(color_codes=True)
 from scipy.io import loadmat
 
 factors = loadmat('FF_factors.mat')
@@ -42,15 +43,20 @@ print(results.summary())
 
 # Find the price of risk, using estimated betas:
 
-# 1. Naive Estimation: (doesn't take into account betas are estimated)
+# 1 - NAIVE Estimation: (doesn't take into account betas are estimated)
 avg_ret = Re.mean(axis = 0)
 model = sm.OLS(endog = avg_ret, exog = betas)
-
 results = model.fit()
 print(results.summary())
 
-plt.plot(results.params,'bo')
+yer = results.conf_int(alpha = 0.05)
+
+plt.errorbar(['Market', 'SMB', 'HML'],results.params,
+                yerr = [yer[0,0] - results.params[0],yer[1,0] - results.params[1],
+                        yer[2,0] - results.params[2]], fmt = 'bo', ecolor = 'r',
+                        capsize = 4.5, marker = 'd')
+
 plt.xticks(np.arange(3), ['Market', 'SMB', 'HML'])
-plt.ylim([0.1,0.6])
+plt.ylim([0,0.7])
 plt.title('Estimated Price of Risk in Fama-French 3-Factor Model')
 plt.show()
